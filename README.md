@@ -3,7 +3,7 @@
 Projeto em Flutter com as seguintes funções: 
 
 - Criar itens
-- Marcar itens como concluido
+- Marcar itens como concluidos
 - Editar itens
 - Excluir itens
 
