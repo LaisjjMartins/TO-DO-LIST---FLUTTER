@@ -1,6 +1,11 @@
 # to_do_list
 
-A new Flutter project.
+Projeto em Flutter com as seguintes funções: 
+
+- Criar itens
+- Marcar itens como concluidos
+- Editar itens
+- Excluir itens
 
 ## Getting Started
 
