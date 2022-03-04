@@ -12,6 +12,7 @@ class Home extends StatefulWidget { //stfull
 class _HomeState extends State<Home> {
    List _listaTarefas = [];
     TextEditingController _controller = TextEditingController();
+   final _controller2 = TextEditingController();
     final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
 
    Future<File> _getFile() async {
@@ -21,7 +22,6 @@ class _HomeState extends State<Home> {
 
     _salvartarefa() async {
      String textoDigitado = _controller.text;
-
      Map<String, dynamic> tarefa = Map();
      tarefa ["titulo"] = textoDigitado;
      tarefa ["realizada"] = false;
@@ -31,10 +31,25 @@ class _HomeState extends State<Home> {
      });
      _salvarArquivo();
     }
+
+   _editartarefa() async {
+     String textInput = _controller2.text;
+     Map<String, dynamic> tarefa = Map();
+     tarefa ["titulo"] = textInput;
+     tarefa ["realizada"] = false;
+
+     setState((){
+       _listaTarefas.add(tarefa);
+
+     });
+     _salvarArquivo();
+   }
+
     _salvarArquivo() async{
      var arquivo = await _getFile();
     String dados = json.encode(_listaTarefas);
     arquivo.writeAsString(dados);
+    debugPrint(dados);
     }
 
    _lerArquivo() async {
@@ -56,30 +71,42 @@ class _HomeState extends State<Home> {
     });
     }
 
-   showAlert(BuildContext context)
+   showAlert(BuildContext context, index)
    {
+     Widget cancelaButton = ElevatedButton(
+       child: Text("Cancelar"),
+       onPressed:  () {
+
+         Navigator.of(context).pop();
+
+       },
+     );
      // configura o button
      Widget okButton = ElevatedButton(
        child: Text("Editar"),
        onPressed: () {
+         _listaTarefas.removeAt(index);
+         _editartarefa();
+
          Navigator.of(context).pop();
-         _salvartarefa();
-         _controller.clear();
        },
      );
      // configura o  AlertDialog
+     _controller2.text=  _listaTarefas[index]["titulo"];
      AlertDialog alerta = AlertDialog(
        title: Text("Editar tarefa"),
        content: TextFormField(
-         controller: _controller,
+         controller: _controller2,
          decoration: InputDecoration(
-             labelText: "Digite a nova tarefa"
+             labelText: "Digite a nova tarefa",
+
          ),
          onChanged: (text){
            print("editar");
          },
        ),
        actions: [
+         cancelaButton,
          okButton,
        ],
      );
@@ -92,8 +119,45 @@ class _HomeState extends State<Home> {
      );
    }
 
-    Widget criarItem(context, index) {
+   showAlertDelete(BuildContext context, index) {
+     Widget cancelaButton = ElevatedButton(
+       child: Text("Cancelar"),
+       onPressed:  () {
+         Navigator.of(context).pop();
+
+       },
+     );
+     Widget continuaButton = ElevatedButton(
+       child: Text("Excluir"),
+       onPressed:  () {
+         _listaTarefas.removeAt(index);
+         _salvarArquivo();
+         Navigator.of(context).pop();
+       },
+     );
+     //configura o AlertDialog
+     AlertDialog alert = AlertDialog(
+       title: Text("Excluir"),
+       content: Text("Realmente deseja excluir essa tarefa ?"),
+       actions: [
+         cancelaButton,
+         continuaButton,
+       ],
+     );
+     //exibe o diálogo
+     showDialog(
+       context: context,
+       builder: (BuildContext context) {
+         return alert;
+       },
+     );
+   }
+
+
+
+   Widget criarItem(context, index) {
       final item = _listaTarefas[index]["titulo"];
+
       return Dismissible(
         key: Key(item),
 
@@ -148,16 +212,11 @@ class _HomeState extends State<Home> {
         ),
         onDismissed: (direction){
           if(direction == DismissDirection.startToEnd){
-            //Remo o item da lista
-            print("delete");
-            _listaTarefas.removeAt(index);
-            _salvarArquivo();
+           showAlertDelete(context, index);
           }
           else if(direction == DismissDirection.endToStart){
-            print("edit");
-            _listaTarefas.removeAt(index);
-            _salvarArquivo();
-            showAlert(context);
+            showAlert(context, index);
+
           }
 
         },
